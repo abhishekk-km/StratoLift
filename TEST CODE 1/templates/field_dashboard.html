@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ field|capitalize }} Dashboard - Crane Safety Monitor</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="dashboard">
+        <header>
+            <div class="logo">
+                <h1>Crane Safety<span>Monitor</span></h1>
+            </div>
+            
+            <nav>
+                <ul>
+                    <li><a href="/">Overview</a></li>
+                    <li><a href="/dashboard/force" {% if field == 'force' %}class="active"{% endif %}>Force</a></li>
+                    <li><a href="/dashboard/torque" {% if field == 'torque' %}class="active"{% endif %}>Torque</a></li>
+                    <li><a href="/dashboard/wind_speed" {% if field == 'wind_speed' %}class="active"{% endif %}>Wind Speed</a></li>
+                    <li><a href="/dashboard/temperature" {% if field == 'temperature' %}class="active"{% endif %}>Temperature</a></li>
+                </ul>
+            </nav>
+            
+            <div class="user-profile">
+                <div class="user-avatar">JD</div>
+                <span>Admin</span>
+            </div>
+        </header>
+        
+        <main>
+            <div class="field-header">
+                <h2>{{ field|capitalize }} Dashboard</h2>
+                <div class="time-range-selector">
+                    <label for="timeRange">Time Range:</label>
+                    <select id="timeRange">
+                        <option value="1">Last 24 Hours</option>
+                        <option value="7" selected>Last 7 Days</option>
+                        <option value="30">Last 30 Days</option>
+                        <option value="90">Last 90 Days</option>
+                    </select>
+                </div>
+            </div>
+            
+            <!-- Current Value Card -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">Current {{ field|capitalize }} Value</div>
+                </div>
+                <div class="card-body">
+                    <div class="current-value">
+                        <div class="value" id="currentValue">--</div>
+                        <div class="unit">
+                            {% if field == 'force' %}kN
+                            {% elif field == 'torque' %}Nm
+                            {% elif field == 'altitude' %}m
+                            {% elif field == 'wind_speed' %}m/s
+                            {% elif field == 'tilt_angle' %}°
+                            {% elif field == 'temperature' %}°C
+                            {% elif field == 'vibrations' %}
+                            {% elif field == 'humidity' %}%
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Historical Chart -->
+            <div class="card full-width">
+                <div class="card-header">
+                    <div class="card-title">Historical {{ field|capitalize }} Data</div>
+                    <div class="view-toggle">
+                        <button id="customViewBtn" class="active">Custom View</button>
+                        <button id="thingspeakViewBtn">ThingSpeak View</button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div id="customChartView">
+                        <canvas id="historicalChart"></canvas>
+                    </div>
+                    <div id="thingspeakChartView" style="display: none;">
+                        <iframe id="thingspeakFrame" style="width: 100%; height: 400px; border: none;"></iframe>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Statistics Card -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">{{ field|capitalize }} Statistics</div>
+                </div>
+                <div class="card-body">
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <div class="stat-label">Average</div>
+                            <div class="stat-value" id="avgValue">--</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">Maximum</div>
+                            <div class="stat-value" id="maxValue">--</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">Minimum</div>
+                            <div class="stat-value" id="minValue">--</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- ML Insights -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">ML Insights</div>
+                </div>
+                <div class="card-body">
+                    <div class="ml-insights">
+                        <div class="insight-item">
+                            <div class="insight-icon">🤖</div>
+                            <div class="insight-content">
+                                <div class="insight-title">Impact on Failure Probability</div>
+                                <div class="insight-description" id="mlInsight">
+                                    Loading ML insights...
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+        
+        <footer>
+            <p>© 2025 CraneMonitor. Last updated: March 11, 2025, 8:20 PM IST</p>
+        </footer>
+    </div>
+
+    <script>
+        // Field-specific JavaScript
+        const FIELD = "{{ field }}";
+        const FIELD_NUMBER = { field_number };
+    </script>
+    <script src="/static/field-dashboard.js"></script>
+</body>
+</html>

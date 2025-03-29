@@ -1,0 +1,1298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CraneGuard Pro | Advanced Monitoring System</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Orbitron:wght@400;600;800&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+  <style>
+    :root {
+      --primary: #2196F3;
+      --primary-dark: #1976D2;
+      --secondary: #03DAC6;
+      --warning: #FF9800;
+      --danger: #F44336;
+      --success: #4CAF50;
+      --dark: #121212;
+      --card-bg: rgba(30, 30, 35, 0.8);
+      --card-border: rgba(255, 255, 255, 0.1);
+      --gradient-blue: linear-gradient(135deg, #2193b0, #6dd5ed);
+      --gradient-purple: linear-gradient(135deg, #834d9b, #d04ed6);
+      --gradient-orange: linear-gradient(135deg, #f12711, #f5af19);
+      --gradient-green: linear-gradient(135deg, #11998e, #38ef7d);
+      --transition-speed: 0.3s;
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Roboto', sans-serif;
+      background-color: var(--dark);
+      color: #fff;
+      background-image: 
+        radial-gradient(circle at 20% 30%, rgba(50, 80, 120, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 80% 60%, rgba(50, 120, 100, 0.15) 0%, transparent 50%);
+      min-height: 100vh;
+    }
+    
+    .dashboard {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+    
+    header {
+      background: rgba(18, 18, 18, 0.9);
+      backdrop-filter: blur(10px);
+      padding: 0.8rem 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    
+    .logo {
+      display: flex;
+      align-items: center;
+    }
+    
+    .logo h1 {
+      font-family: 'Orbitron', sans-serif;
+      font-weight: 600;
+      font-size: 1.5rem;
+      background: linear-gradient(90deg, var(--primary), var(--secondary));
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-left: 0.5rem;
+    }
+    
+    .logo-icon {
+      color: var(--primary);
+      font-size: 1.8rem;
+    }
+    
+    nav ul {
+      display: flex;
+      list-style: none;
+      gap: 1.5rem;
+    }
+    
+    nav a {
+      color: rgba(255, 255, 255, 0.8);
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 0.9rem;
+      padding: 0.5rem 0.75rem;
+      border-radius: 4px;
+      transition: all var(--transition-speed);
+    }
+    
+    nav a:hover {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.1);
+    }
+    
+    nav a.active {
+      color: #fff;
+      background: rgba(33, 150, 243, 0.2);
+      border-bottom: 2px solid var(--primary);
+    }
+    
+    .dashboard-controls {
+      background: rgba(25, 25, 30, 0.8);
+      padding: 1rem 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+      backdrop-filter: blur(5px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    
+    .crane-selector {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .crane-selector label {
+      font-size: 0.9rem;
+      color: rgba(255, 255, 255, 0.8);
+    }
+    
+    select, button {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 4px;
+      color: #fff;
+      padding: 0.5rem 1rem;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all var(--transition-speed);
+    }
+    
+    select:hover, button:hover {
+      background: rgba(255, 255, 255, 0.15);
+    }
+    
+    .time-range {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .refresh-status {
+      color: rgba(255, 255, 255, 0.6);
+      font-size: 0.85rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .refresh-button {
+      background: transparent;
+      color: var(--primary);
+      border: none;
+      cursor: pointer;
+      font-size: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.25rem;
+      border-radius: 50%;
+      transition: transform 0.3s ease;
+    }
+    
+    .refresh-button:hover {
+      transform: rotate(30deg);
+    }
+    
+    .refresh-button.spinning {
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    main {
+      flex: 1;
+      padding: 1.5rem;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.5rem;
+      max-width: 1600px;
+      margin: 0 auto;
+      width: 100%;
+    }
+    
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      overflow: hidden;
+      transition: all var(--transition-speed);
+      backdrop-filter: blur(5px);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      position: relative;
+    }
+    
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+      border-color: rgba(33, 150, 243, 0.3);
+    }
+    
+    .card-header {
+      padding: 1rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .card-title {
+      font-weight: 500;
+      color: rgba(255, 255, 255, 0.9);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .parameter-icon {
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--primary);
+    }
+    
+    .status-indicator {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.85rem;
+      color: rgba(255, 255, 255, 0.7);
+    }
+    
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+    
+    .status-normal {
+      background-color: var(--success);
+      box-shadow: 0 0 10px var(--success);
+    }
+    
+    .status-caution {
+      background-color: var(--warning);
+      box-shadow: 0 0 10px var(--warning);
+    }
+    
+    .status-warning {
+      background-color: #FF9800;
+      box-shadow: 0 0 10px #FF9800;
+    }
+    
+    .status-danger {
+      background-color: var(--danger);
+      box-shadow: 0 0 10px var(--danger);
+    }
+    
+    .card-body {
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+    }
+    
+    .sensor-value-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem 1rem;
+    }
+    
+    .sensor-value {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 2.5rem;
+      font-weight: 600;
+      background: linear-gradient(90deg, #fff, var(--primary));
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      transition: all var(--transition-speed);
+      position: relative;
+      padding-right: 0.5rem;
+    }
+    
+    .unit {
+      font-size: 1rem;
+      font-weight: 400;
+      color: rgba(255, 255, 255, 0.6);
+      margin-left: 0.5rem;
+    }
+    
+    .chart-container {
+      flex: 1;
+      position: relative;
+      min-height: 150px;
+    }
+    
+    .thingspeak-container {
+      flex: 1;
+      overflow: hidden;
+      border-radius: 8px;
+      min-height: 250px;
+      position: relative;
+      background: rgba(0, 0, 0, 0.2);
+    }
+    
+    .thingspeak-container iframe {
+      border: none;
+      width: 100%;
+      height: 100%;
+      min-height: 250px;
+      filter: hue-rotate(180deg) invert(0.9);
+      transition: all var(--transition-speed);
+    }
+    
+    .thingspeak-container:hover iframe {
+      filter: hue-rotate(180deg) invert(0.85);
+    }
+    
+    .loading {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: rgba(0, 0, 0, 0.5);
+      color: rgba(255, 255, 255, 0.8);
+      font-size: 0.9rem;
+    }
+    
+    .loading::after {
+      content: "";
+      width: 20px;
+      height: 20px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-top: 2px solid var(--primary);
+      border-radius: 50%;
+      margin-left: 10px;
+      animation: spin 1s linear infinite;
+    }
+    
+    .full-width {
+      grid-column: 1 / -1;
+    }
+    
+    .half-width {
+      grid-column: span 2;
+    }
+    
+    .accuracy-card {
+      background: var(--gradient-purple);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .accuracy-card::before {
+      content: "";
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 60%);
+      animation: pulse 15s infinite alternate;
+    }
+    
+    @keyframes pulse {
+      0% { transform: translate(0%, 0%); }
+      100% { transform: translate(-25%, -25%); }
+    }
+    
+    .accuracy-value {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 3rem;
+      font-weight: 800;
+      background: linear-gradient(90deg, #fff, #f5f5f5);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-align: center;
+      margin: 1rem 0;
+      position: relative;
+      z-index: 2;
+    }
+    
+    .accuracy-label {
+      text-align: center;
+      font-size: 0.9rem;
+      color: rgba(255, 255, 255, 0.9);
+      margin-bottom: 1rem;
+      position: relative;
+      z-index: 2;
+    }
+    
+    .accuracy-updated {
+      text-align: center;
+      font-size: 0.8rem;
+      color: rgba(255, 255, 255, 0.7);
+      position: relative;
+      z-index: 2;
+    }
+    
+    .alert-panel {
+      grid-column: 1 / -1;
+      background: linear-gradient(90deg, rgba(244, 67, 54, 0.9), rgba(255, 152, 0, 0.9));
+      padding: 1rem;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      animation: slideDown 0.5s forwards;
+      transition: transform 0.5s, opacity 0.5s;
+      box-shadow: 0 5px 15px rgba(244, 67, 54, 0.3);
+      display: none;
+    }
+    
+    @keyframes slideDown {
+      from {
+        transform: translateY(-20px);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+    
+    .alert-hidden {
+      transform: translateY(-20px);
+      opacity: 0;
+    }
+    
+    .alert-message {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    
+    .alert-icon {
+      font-size: 1.8rem;
+    }
+    
+    .alert-message h3 {
+      font-size: 1.1rem;
+      margin-bottom: 0.25rem;
+    }
+    
+    .alert-message p {
+      font-size: 0.9rem;
+      opacity: 0.9;
+      max-width: 80ch;
+    }
+    
+    .alert-actions button {
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+      border: 1px solid rgba(255, 255, 255, 0.4);
+      border-radius: 4px;
+      padding: 0.5rem 1rem;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .alert-actions button:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+    
+    footer {
+      background: rgba(18, 18, 18, 0.9);
+      backdrop-filter: blur(10px);
+      padding: 1rem 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      font-size: 0.85rem;
+      color: rgba(255, 255, 255, 0.6);
+    }
+    
+    .footer-links {
+      display: flex;
+      gap: 1.5rem;
+    }
+    
+    .footer-link {
+      color: rgba(255, 255, 255, 0.6);
+      text-decoration: none;
+      transition: color var(--transition-speed);
+    }
+    
+    .footer-link:hover {
+      color: var(--primary);
+    }
+    
+    @media (max-width: 768px) {
+      main {
+        grid-template-columns: 1fr;
+      }
+      
+      .half-width {
+        grid-column: span 1;
+      }
+      
+      header {
+        flex-direction: column;
+        gap: 1rem;
+      }
+      
+      .dashboard-controls {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      
+      footer {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+      }
+      
+      .footer-links {
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+    }
+    
+    /* Animations and transitions */
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    
+    @keyframes slideInUp {
+      from {
+        transform: translateY(30px);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+    
+    main .card {
+      animation: slideInUp 0.5s forwards;
+      animation-fill-mode: both;
+    }
+    
+    main .card:nth-child(1) { animation-delay: 0.1s; }
+    main .card:nth-child(2) { animation-delay: 0.2s; }
+    main .card:nth-child(3) { animation-delay: 0.3s; }
+    main .card:nth-child(4) { animation-delay: 0.4s; }
+    main .card:nth-child(5) { animation-delay: 0.5s; }
+    main .card:nth-child(6) { animation-delay: 0.6s; }
+    main .card:nth-child(7) { animation-delay: 0.7s; }
+    main .card:nth-child(8) { animation-delay: 0.8s; }
+    main .card:nth-child(9) { animation-delay: 0.9s; }
+    main .card:nth-child(10) { animation-delay: 1.0s; }
+  </style>
+</head>
+<body>
+  <div class="dashboard">
+    <!-- Header -->
+    <header>
+      <div class="logo">
+        <i class="fas fa-crane logo-icon"></i>
+        <h1>CraneGuard Pro</h1>
+      </div>
+      
+      <nav>
+        <ul>
+          <li><a href="#" class="active">Dashboard</a></li>
+          <li><a href="#">Analytics</a></li>
+          <li><a href="#">Maintenance</a></li>
+          <li><a href="#">Alerts</a></li>
+          <li><a href="#">Settings</a></li>
+        </ul>
+      </nav>
+    </header>
+    
+    <!-- Dashboard Controls -->
+    <div class="dashboard-controls">
+      <div class="crane-selector">
+        <label for="crane-select">Crane:</label>
+        <select id="crane-select">
+          <option value="crane1" selected>Crane 1 - Tower</option>
+          <option value="crane2">Crane 2 - Mobile</option>
+          <option value="crane3">Crane 3 - Boom</option>
+        </select>
+      </div>
+      
+      <div class="time-range">
+        <label for="time-range-select">Time Range:</label>
+        <select id="time-range-select">
+          <option value="1">24 Hours</option>
+          <option value="7" selected>7 Days</option>
+          <option value="30">30 Days</option>
+        </select>
+      </div>
+      
+      <div class="refresh-status">
+        <span>Last updated: <span id="lastUpdatedTime">Loading...</span></span>
+        <button id="refresh-button" class="refresh-button" title="Refresh Data">
+          <i class="fas fa-sync-alt"></i>
+        </button>
+      </div>
+    </div>
+    
+    <!-- Alert Panel -->
+    <div id="alertPanel" class="alert-panel">
+      <div class="alert-message">
+        <div class="alert-icon">
+          <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        <div>
+          <h3 id="alertTitle">Warning: High Load Detected</h3>
+          <p id="alertDescription">ML model detected potential overloading. Check load distribution and cable tension.</p>
+        </div>
+      </div>
+      <div class="alert-actions">
+        <button id="acknowledgeButton">Acknowledge</button>
+      </div>
+    </div>
+    
+    <!-- Main Content -->
+    <main>
+      <!-- ML Model Accuracy Card -->
+      <div class="card accuracy-card">
+        <div class="card-header">
+          <div class="card-title">
+            <div class="parameter-icon">
+              <i class="fas fa-brain"></i>
+            </div>
+            <span>ML Model Accuracy</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="accuracy-value" id="modelAccuracy">96.2%</div>
+          <div class="accuracy-label">Crane Failure Prediction Model</div>
+          <div class="accuracy-updated" id="accuracyUpdated">Last validated: Mar 09, 2025</div>
+        </div>
+      </div>
+      
+      <!-- Force/Load Card -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">
+            <div class="parameter-icon">
+              <i class="fas fa-weight-hanging"></i>
+            </div>
+            <span>Load Force</span>
+          </div>
+          <div class="status-indicator">
+            <div id="forceStatus" class="status-dot status-normal"></div>
+            <span id="forceStatusText">Normal</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="sensor-value-container">
+            <div class="sensor-value" id="forceValue">325<span class="unit">kN</span></div>
+          </div>
+          <div class="thingspeak-container" id="forceThingspeak">
+            <div class="loading">Loading ThingSpeak data...</div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Torque Card -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">
+            <div class="parameter-icon">
+              <i class="fas fa-sync-alt"></i>
+            </div>
+            <span>Torque</span>
+          </div>
+          <div class="status-indicator">
+            <div id="torqueStatus" class="status-dot status-caution"></div>
+            <span id="torqueStatusText">Caution</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="sensor-value-container">
+            <div class="sensor-value" id="torqueValue">752<span class="unit">Nm</span></div>
+          </div>
+          <div class="thingspeak-container" id="torqueThingspeak">
+            <div class="loading">Loading ThingSpeak data...</div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Altitude Card -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">
+            <div class="parameter-icon">
+              <i class="fas fa-mountain"></i>
+            </div>
+            <span>Altitude</span>
+          </div>
+          <div class="status-indicator">
+            <div id="altitudeStatus" class="status-dot status-normal"></div>
+            <span id="altitudeStatusText">Normal</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="sensor-value-container">
+            <div class="sensor-value" id="altitudeValue">92<span class="unit">m</span></div>
+          </div>
+          <div class="thingspeak-container" id="altitudeThingspeak">
+            <div class="loading">Loading ThingSpeak data...</div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Wind Speed Card -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">
+            <div class="parameter-icon">
+              <i class="fas fa-wind"></i>
+            </div>
+            <span>Wind Speed</span>
+          </div>
+          <div class="status-indicator">
+            <div id="windStatus" class="status-dot status-warning"></div>
+            <span id="windStatusText">Warning</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="sensor-value-container">
+            <div class="sensor-value" id="windSpeedValue">18.3<span class="unit">m/s</span></div>
+          </div>
+          <div class="thingspeak-container" id="windThingspeak">
+            <div class="loading">Loading ThingSpeak data...</div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Tilt Angle Card -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">
+            <div class="parameter-icon">
+              <i class="fas fa-tachometer-alt"></i>
+            </div>
+            <span>Tilt Angle</span>
+          </div>
+          <div class="status-indicator">
+            <div id="tiltStatus" class="status-dot status-normal"></div>
+            <span id="tiltStatusText">Normal</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="sensor-value-container">
+            <div class="sensor-value" id="tiltValue">2.1<span class="unit">°</span></div>
+          </div>
+          <div class="thingspeak-container" id="tiltThingspeak">
+            <div class="loading">Loading ThingSpeak data...</div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Temperature Card -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">
+            <div class="parameter-icon">
+              <i class="fas fa-temperature-high"></i>
+            </div>
+            <span>Temperature</span>
+          </div>
+          <div class="status-indicator">
+            <div id="tempStatus" class="status-dot status-normal"></div>
+            <span id="tempStatusText">Normal</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="sensor-value-container">
+            <div class="sensor-value" id="temperatureValue">42.8<span class="unit">°C</span></div>
+          </div>
+          <div class="thingspeak-container" id="temperatureThingspeak">
+            <div class="loading">Loading ThingSpeak data...</div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Vibrations Card -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">
+            <div class="parameter-icon">
+              <i class="fas fa-wave-square"></i>
+            </div>
+            <span>Vibrations</span>
+          </div>
+          <div class="status-indicator">
+            <div id="vibrationStatus" class="status-dot status-danger"></div>
+            <span id="vibrationStatusText">Critical</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="sensor-value-container">
+            <div class="sensor-value" id="vibrationValue">87.4<span class="unit">Hz</span></div>
+          </div>
+          <div class="thingspeak-container" id="vibrationThingspeak">
+            <div class="loading">Loading ThingSpeak data...</div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Humidity Card -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">
+            <div class="parameter-icon">
+              <i class="fas fa-water"></i>
+            </div>
+            <span>Humidity</span>
+          </div>
+          <div class="status-indicator">
+            <div id="humidityStatus" class="status-dot status-normal"></div>
+            <span id="humidityStatusText">Normal</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="sensor-value-container">
+            <div class="sensor-value" id="humidityValue">64.5<span class="unit">%</span></div>
+          </div>
+          <div class="thingspeak-container" id="humidityThingspeak">
+            <div class="loading">Loading ThingSpeak data...</div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Failure Prediction Card -->
+      <div class="card half-width">
+        <div class="card-header">
+          <div class="card-title">
+            <div class="parameter-icon">
+              <i class="fas fa-chart-line"></i>
+            </div>
+            <span>Failure Probability Trend</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="chart-container">
+            <canvas id="predictionChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </main>
+    
+    <!-- Footer -->
+    <footer>
+      <p>© 2025 CraneGuard Pro. Real-time IoT monitoring system. Data refreshes every 30 seconds.</p>
+      <div class="footer-links">
+        <a href="#" class="footer-link">API Documentation</a>
+        <a href="#" class="footer-link">ThingSpeak Integration</a>
+        <a href="#" class="footer-link">Support</a>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    // Global variables
+    const CHANNEL_ID = "2869932";
+    const READ_API_KEY = "F3PQYXN46UYN3MKK";
+    const BASE_URL = `https://api.thingspeak.com/channels/${CHANNEL_ID}`;
+    
+    // Field mapping
+    const FIELD_MAPPING = {
+      "force": 1,
+      "torque": 2,
+      "altitude": 3,
+      "wind_speed": 4,
+      "tilt_angle": 5,
+      "temperature": 6,
+      "vibrations": 7,
+      "humidity": 8
+    };
+    
+    // Unit mapping
+    const UNIT_MAPPING = {
+      "force": "kN",
+      "torque": "Nm",
+      "altitude": "m",
+      "wind_speed": "m/s",
+      "tilt_angle": "°",
+      "temperature": "°C",
+      "vibrations": "Hz",
+      "humidity": "%"
+    };
+    
+    // Thresholds for alerts
+    const THRESHOLDS = {
+      force: { warning: 350, critical: 400 },
+      torque: { warning: 700, critical: 900 },
+      tilt_angle: { warning: 3, critical: 5 },
+      vibrations: { warning: 60, critical: 80 },
+      wind_speed: { warning: 15, critical: 20 },
+      temperature: { warning: 75, critical: 85 }
+    };
+    
+    // Prediction chart
+    let predictionChart;
+    
+    // Initialize dashboard
+    document.addEventListener('DOMContentLoaded', function() {
+      // Set up event listeners
+      setupEventListeners();
+      
+      // Initialize ThingSpeak embeds
+      initThingSpeakEmbeds();
+      
+      // Initialize charts
+      initCharts();
+      
+      // Load real-time data
+      loadRealTimeData();
+      
+      // Load model accuracy
+      loadModelAccuracy();
+      
+      // Set up auto-refresh
+      setInterval(loadRealTimeData, 30000); // Refresh every 30 seconds
+    });
+    
+    // Set up event listeners
+    function setupEventListeners() {
+      // Refresh button
+      document.getElementById('refresh-button').addEventListener('click', function() {
+        this.classList.add('spinning');
+        loadRealTimeData().then(() => {
+          setTimeout(() => {
+            this.classList.remove('spinning');
+          }, 1000);
+        });
+      });
+      
+      // Time range change
+      document.getElementById('time-range-select').addEventListener('change', function() {
+        const days = this.value;
+        updateAllThingSpeakEmbeds(days);
+      });
+      
+      // Crane select change
+      document.getElementById('crane-select').addEventListener('change', function() {
+        // In a real app, this would load data for a different crane
+        document.getElementById('refresh-button').click();
+      });
+      
+      // Alert acknowledge button
+      document.getElementById('acknowledgeButton').addEventListener('click', function() {
+        document.getElementById('alertPanel').style.display = 'none';
+      });
+    }
+    
+    // Initialize ThingSpeak embeds
+    function initThingSpeakEmbeds() {
+      const days = document.getElementById('time-range-select').value;
+      updateAllThingSpeakEmbeds(days);
+    }
+    
+    // Update all ThingSpeak embeds
+    function updateAllThingSpeakEmbeds(days) {
+      const fields = Object.keys(FIELD_MAPPING);
+      fields.forEach(field => {
+        loadThingSpeakEmbed(field, days);
+      });
+    }
+    
+    // Load ThingSpeak embed for a specific field
+    function loadThingSpeakEmbed(field, days) {
+      const fieldNumber = FIELD_MAPPING[field];
+      const containerId = `${field}Thingspeak`;
+      const container = document.getElementById(containerId);
+      
+      if (!container) return;
+      
+      // Show loading indicator
+      container.innerHTML = '<div class="loading">Loading ThingSpeak data...</div>';
+      
+      // Fetch embed URL from our backend
+      fetch(`/api/thingspeak/embed/${field}?days=${days}`)
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            // Create iframe
+            const iframe = document.createElement('iframe');
+            iframe.src = data.dynamic_chart_url;
+            iframe.style.width = '100%';
+            iframe.style.height = '100%';
+            iframe.style.border = 'none';
+            
+            // Replace loading with iframe
+            container.innerHTML = '';
+            container.appendChild(iframe);
+          } else {
+            // Show error
+            container.innerHTML = `<div class="loading">Error: ${data.error}</div>`;
+          }
+        })
+        .catch(error => {
+          // Show error
+          container.innerHTML = `<div class="loading">Error: ${error.message}</div>`;
+        });
+    }
+    
+    // Initialize charts
+    function initCharts() {
+      // Prediction chart
+      const predictionCtx = document.getElementById('predictionChart').getContext('2d');
+      predictionChart = new Chart(predictionCtx, {
+        type: 'line',
+        data: {
+          labels: [],
+          datasets: [{
+            label: 'Failure Probability (%)',
+            data: [],
+            borderColor: '#FF5722',
+            backgroundColor: 'rgba(255, 87, 34, 0.1)',
+            borderWidth: 2,
+            fill: true,
+            tension: 0.4
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              beginAtZero: true,
+              max: 100,
+              ticks: {
+                color: 'rgba(255, 255, 255, 0.7)',
+                callback: function(value) {
+                  return value + '%';
+                }
+              },
+              grid: {
+                color: 'rgba(255, 255, 255, 0.1)'
+              }
+            },
+            x: {
+              ticks: {
+                color: 'rgba(255, 255, 255, 0.7)',
+                maxRotation: 45,
+                minRotation: 45
+              },
+              grid: {
+                color: 'rgba(255, 255, 255, 0.1)'
+              }
+            }
+          },
+          plugins: {
+            legend: {
+              labels: {
+                color: 'rgba(255, 255, 255, 0.9)'
+              }
+            }
+          }
+        }
+      });
+      
+      // Load historical prediction data
+      loadPredictionHistory();
+    }
+    
+    // Load real-time data
+    async function loadRealTimeData() {
+      try {
+        const response = await fetch('/api/live_data');
+        const data = await response.json();
+        
+        if (!data.success) {
+          console.error('Error loading real-time data:', data.error);
+          return;
+        }
+        
+        // Update timestamp
+        document.getElementById('lastUpdatedTime').textContent = 
+          new Date().toLocaleTimeString();
+        
+        // Update sensor values
+        updateSensorValues(data);
+        
+        // Check for alerts
+        checkForAlerts(data);
+        
+      } catch (error) {
+        console.error('Error fetching real-time data:', error);
+      }
+    }
+    
+    // Update sensor values
+    function updateSensorValues(data) {
+      // Update each sensor value
+      for (const [key, value] of Object.entries(data.sensors)) {
+        const valueElement = document.getElementById(`${key}Value`);
+        if (valueElement) {
+          // Parse float and format to 1 decimal place
+          const parsedValue = parseFloat(value);
+          valueElement.innerHTML = `${parsedValue.toFixed(1)}<span class="unit">${UNIT_MAPPING[key] || ''}</span>`;
+          
+          // Update status indicators for parameters with thresholds
+          updateStatusIndicator(key, parsedValue);
+        }
+      }
+      
+      // Update failure probability if available
+      if (data.failure_probability !== undefined) {
+        const probability = data.failure_probability * 100;
+        
+        // Add to prediction chart if initialized
+        if (predictionChart) {
+          // Add new data point
+          const now = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+          
+          // Keep only the last 20 data points
+          if (predictionChart.data.labels.length > 20) {
+            predictionChart.data.labels.shift();
+            predictionChart.data.datasets[0].data.shift();
+          }
+          
+          predictionChart.data.labels.push(now);
+          predictionChart.data.datasets[0].data.push(probability);
+          predictionChart.update();
+        }
+      }
+    }
+    
+    // Update status indicator
+    function updateStatusIndicator(parameter, value) {
+      const statusElement = document.getElementById(`${parameter}Status`);
+      const textElement = document.getElementById(`${parameter}StatusText`);
+      
+      if (!statusElement || !textElement) return;
+      
+      // Get thresholds for this parameter
+      const thresholds = THRESHOLDS[parameter];
+      
+      if (!thresholds) {
+        // Default to normal if no thresholds defined
+        statusElement.className = 'status-dot status-normal';
+        textElement.textContent = 'Normal';
+        return;
+      }
+      
+      // Check thresholds and update status
+      if (value >= thresholds.critical) {
+        statusElement.className = 'status-dot status-danger';
+        textElement.textContent = 'Critical';
+      } else if (value >= thresholds.warning) {
+        statusElement.className = 'status-dot status-warning';
+        textElement.textContent = 'Warning';
+      } else {
+        statusElement.className = 'status-dot status-normal';
+        textElement.textContent = 'Normal';
+      }
+    }
+    
+    // Check for alerts based on sensor values
+    function checkForAlerts(data) {
+      const alertPanel = document.getElementById('alertPanel');
+      const alertTitle = document.getElementById('alertTitle');
+      const alertDescription = document.getElementById('alertDescription');
+      
+      // Check for warning level from ML model
+      if (data.warning_level === 'critical') {
+        alertTitle.textContent = 'Critical Alert: Failure Risk Detected';
+        alertDescription.textContent = data.warning_message || 'ML model detected high failure probability. Immediate inspection required.';
+        alertPanel.style.display = 'flex';
+        return;
+      }
+      
+      // Check individual parameters for critical values
+      const sensors = data.sensors;
+      
+      if (sensors.vibrations >= THRESHOLDS.vibrations.critical) {
+        alertTitle.textContent = 'Critical Alert: Unusual Vibration';
+        alertDescription.textContent = 'Excessive vibration detected. Possible bearing failure or structural issue.';
+        alertPanel.style.display = 'flex';
+        return;
+      }
+      
+      if (sensors.force >= THRESHOLDS.force.critical) {
+        alertTitle.textContent = 'Critical Alert: Load Limit Exceeded';
+        alertDescription.textContent = 'Load force exceeds safe operating limits. Reduce load immediately.';
+        alertPanel.style.display = 'flex';
+        return;
+      }
+      
+      if (sensors.wind_speed >= THRESHOLDS.wind_speed.critical) {
+        alertTitle.textContent = 'Critical Alert: High Wind Speed';
+        alertDescription.textContent = 'Wind speed exceeds safe operating conditions. Secure crane and pause operations.';
+        alertPanel.style.display = 'flex';
+        return;
+      }
+      
+      if (sensors.tilt_angle >= THRESHOLDS.tilt_angle.critical) {
+        alertTitle.textContent = 'Critical Alert: Excessive Tilt';
+        alertDescription.textContent = 'Crane tilt angle exceeds safe limits. Check ground conditions and load distribution.';
+        alertPanel.style.display = 'flex';
+        return;
+      }
+      
+      // If no alerts, hide the panel
+      alertPanel.style.display = 'none';
+    }
+    
+    // Load prediction history
+    async function loadPredictionHistory() {
+      try {
+        const response = await fetch('/api/prediction_history?days=1&limit=20');
+        const data = await response.json();
+        
+        if (!data.success || !data.history || data.history.length === 0) {
+          console.log('No prediction history available');
+          return;
+        }
+        
+        // Update prediction chart
+        const timestamps = [];
+        const probabilities = [];
+        
+        data.history.forEach(item => {
+          const date = new Date(item.timestamp);
+          timestamps.push(date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}));
+          probabilities.push(item.probability * 100);
+        });
+        
+        predictionChart.data.labels = timestamps;
+        predictionChart.data.datasets[0].data = probabilities;
+        predictionChart.update();
+        
+      } catch (error) {
+        console.error('Error loading prediction history:', error);
+      }
+    }
+    
+    // Load model accuracy
+    async function loadModelAccuracy() {
+      try {
+        const response = await fetch('/api/accuracy');
+        const data = await response.json();
+        
+        if (!data.success) {
+          console.error('Error loading model accuracy:', data.error);
+          return;
+        }
+        
+        // Update accuracy value
+        document.getElementById('modelAccuracy').textContent = data.accuracy;
+        
+        // Update last updated date
+        if (data.last_updated) {
+          const date = new Date(data.last_updated);
+          document.getElementById('accuracyUpdated').textContent = 
+            `Last validated: ${date.toLocaleDateString()}`;
+        }
+        
+      } catch (error) {
+        console.error('Error fetching model accuracy:', error);
+      }
+    }
+  </script>
+</body>
+</html>
